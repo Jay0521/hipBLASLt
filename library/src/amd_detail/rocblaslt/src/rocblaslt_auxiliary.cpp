@@ -123,9 +123,10 @@ bool problem_override_from_file(rocblaslt_handle&                      handle,
 
         //TODO: Is it necessary to support the approximation mapped method?
 
-        for (auto sol_idx = sol_iter.first; sol_idx != sol_iter.second; sol_idx++)
+        for (auto sol_idx = sol_iter.first; 
+            !success && sol_idx != sol_iter.second; 
+            sol_idx++)
         {
-
 
             solutionIndex[0] = sol_idx->second;
 

@@ -73,7 +73,20 @@ namespace Tensile
                 auto problemSolution = problemFromEntries(entries);
                 if(problemSolution.second > 0)
                 {
-                    m_override.insert(problemSolution);
+                    bool duplicated_entry = false;
+                    auto sol_iter = m_override.equal_range(problemSolution.first);
+                    for (auto sol_idx = sol_iter.first; 
+                        !duplicated_entry && sol_idx != sol_iter.second; 
+                        sol_idx++)
+                    {
+                        if (sol_idx->second == problemSolution.second)
+                        {
+                            duplicated_entry = true;
+                        }
+                    }
+
+                    if (!duplicated_entry)
+                        m_override.insert(problemSolution);
                 }
             }
         }
