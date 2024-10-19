@@ -252,7 +252,12 @@ public:
                      atol,
                      rtol);
 
-        if(solution_index > -1)
+        auto delim = ",";
+        name_list << delim << "soulution_index";
+        value_list << delim << solution_index;
+
+
+        if(solution_name != "")
         {
             str << name_list << "\n"
                 << value_list << "\n"

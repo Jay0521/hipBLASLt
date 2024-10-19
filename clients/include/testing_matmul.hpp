@@ -3275,12 +3275,11 @@ void testing_matmul_with_bias(const Arguments& arg,
 
         if(heuristicResult.size() > 1)
         {
-            int32_t     solutionIndex = -1;
+            int32_t     solutionIndex = hipblaslt_ext::getIndexFromAlgo(heuristicResult[best_sol].algo);
             std::string solutionName  = "";
             std::string kernelName    = "";
             if(arg.print_kernel_info)
             {
-                solutionIndex = hipblaslt_ext::getIndexFromAlgo(heuristicResult[best_sol].algo);
                 solutionName  = best_s_name;
                 kernelName    = best_k_name;
             }
