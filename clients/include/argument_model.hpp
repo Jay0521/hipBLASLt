@@ -267,7 +267,8 @@ public:
         }
         else
         {
-            str << name_list << "\n" << value_list << std::endl;
+            str << name_list << "\n" 
+                << value_list << std::endl;
         }
     }
 };
