@@ -264,7 +264,79 @@ void hipblaslt_print_version(void)
     hipblasLtGetGitRevision(handle, &git_version[0]);
     hipblaslt_cout << "hipBLASLt version: " << version << std::endl;
     hipblaslt_cout << "hipBLASLt git version: " << git_version << std::endl;
+
 }
+
+bool tuning_path_write_git_version(const char* tuningEnv)
+{
+    char                   git_version[128]; 
+    hipblaslt_local_handle handle; 
+    hipblasLtGetGitRevision(handle, &git_version[0]);
+    std::string tuningPath = tuningEnv;
+
+    std::ifstream file_read(tuningPath);
+    std::ofstream file_write(tuningPath, std::ios::app);
+
+    if (file_read.peek() == std::ifstream::traits_type::eof())
+    {
+        file_write << "Git Version: " << (std::string)git_version << std::endl;
+
+    }
+    else
+    {
+        std::string firstline;
+        std::string prefix = "Git Version: ";
+        std::getline(file_read, firstline);
+        size_t pos = firstline.find(prefix);
+        if (pos != std::string::npos)
+        {
+            std::string file_version = firstline.substr(pos + prefix.length());
+            if (file_version != git_version)
+                tuningPath = "";
+        }
+        else
+        {
+            tuningPath = "";
+            //warning
+        }
+    }
+
+    //size_t pos = tuningPath.find(".");
+    //std::string postifx = "_" + (std::string)git_version + ".";
+    //if(pos != std::string::npos)
+    //    tuningPath.replace(pos, 1, postifx);
+        return (setenv("HIPBALSLT_MATMUL_OVERRIDE_PATH", tuningPath.c_str(), 1) == 0);
+
+}
+
+bool override_path_compare_git_version(const char* overrideEnv)
+{
+    char                   git_version[128]; 
+    hipblaslt_local_handle handle; 
+    hipblasLtGetGitRevision(handle, &git_version[0]);
+    std::string overridePath = overrideEnv;
+
+    std::ifstream file_read(overridePath);
+    std::string firstline;
+    std::string prefix = "Git Version: ";
+    std::getline(file_read, firstline);
+    size_t pos = firstline.find(prefix);
+    if (pos != std::string::npos)
+    {
+        std::string file_version = firstline.substr(pos + prefix.length());
+        if (file_version != git_version)
+            overridePath = "";
+    }
+    else
+    {
+        overridePath = "";
+        //warning
+    }
+
+    return (setenv("HIPBALSLT_MATMUL_OVERRIDE_PATH", overridePath.c_str(), 1) == 0);
+
+}
+
 
 int main(int argc, char* argv[])
 try
@@ -867,6 +939,38 @@ try
     default:
         throw std::invalid_argument("Invalid value for api_method: " + std::to_string(api_method));
         break;
+    }
+
+
+    if (arg.algo_method == 0)
+    {
+        const char* overrideEnv = getenv("HIPBALSLT_MATMUL_OVERRIDE_PATH");
+        bool override_success = false;
+        if (overrideEnv)
+        {
+           override_success = override_path_compare_git_version(overrideEnv); 
+        }
+
+        if (!override_success)
+        {
+
+            // warning
+        }
+    }
+
+    if (arg.algo_method == 1)
+    {
+        const char* tuningEnv = getenv("HIPBLASLT_MATMUL_TUNING_PATH");
+        bool tuning_success = false;
+        if (tuningEnv)
+        {
+           tuning_success = tuning_path_write_git_version(tuningEnv); 
+        }
+
+        if (!tuning_success)
+        {
+            // warning
+        }
     }
 
     arg.norm_check_assert = false;

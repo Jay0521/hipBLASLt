@@ -73,6 +73,7 @@ namespace Tensile
                 auto problemSolution = problemFromEntries(entries);
                 if(problemSolution.second > 0)
                 {
+                    //std::cout << problemSolution.second << std::endl;
                     bool duplicated_entry = false;
                     auto sol_iter = m_override.equal_range(problemSolution.first);
                     for (auto sol_idx = sol_iter.first; 
@@ -86,7 +87,9 @@ namespace Tensile
                     }
 
                     if (!duplicated_entry)
+                    {
                         m_override.insert(problemSolution);
+                    }
                 }
             }
         }
@@ -131,6 +134,7 @@ namespace Tensile
             outputType  = hipDataType_to_tensile_type(string_to_hip_datatype(entries[19]));
             computeType = hipDataType_to_tensile_type(string_to_hip_datatype(entries[21]));
             solution_idx = std::stoi(entries[33]);
+            //std::cout << solution_idx << std::endl;
 
         }
         catch(std::invalid_argument const& ex)

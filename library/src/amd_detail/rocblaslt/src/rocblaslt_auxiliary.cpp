@@ -115,6 +115,14 @@ bool problem_override_from_file(rocblaslt_handle&                      handle,
     }
     else 
     {
+        // for (const auto& m : probSols)
+        // {
+        //     std::cout << m.first.m() << " ";
+        //     std::cout << m.first.n() << " ";
+        //     std::cout << m.first.k() << " ";
+        //     std::cout << m.first.batchSize() << "\n";
+        // }
+
 
         std::vector<rocblaslt_matmul_heuristic_result> overrideResults;
         std::vector<int> solutionIndex(1);
@@ -127,7 +135,7 @@ bool problem_override_from_file(rocblaslt_handle&                      handle,
             !success && sol_idx != sol_iter.second; 
             sol_idx++)
         {
-
+            std::cout << sol_idx->second << std::endl;
             solutionIndex[0] = sol_idx->second;
 
             if (rocblaslt_status_success
@@ -1446,7 +1454,7 @@ rocblaslt_status
         int8_t                 alpha[16]    = {0};
         int8_t                 beta[16]     = {0};
         assignAlphaBeta1(compute_type, (void*)alpha, (void*)beta);
-        const char* overrideEnv = getenv("HIPBALSLT_TENSILE_GEMM_OVERRIDE_PATH");
+        const char* overrideEnv = getenv("HIPBALSLT_MATMUL_OVERRIDE_PATH");
         bool override_success = false;
 
         //bias ptr can be set later after getting solution.

@@ -27,6 +27,9 @@
 #pragma once
 
 #include "hipblaslt_arguments.hpp"
+#include <string>
+#include <iostream>
+#include <fstream>
 
 namespace ArgumentLogging
 {
@@ -165,7 +168,8 @@ public:
                   double                      cpu_us    = ArgumentLogging::NA_value,
                   double                      norm      = ArgumentLogging::NA_value,
                   double                      atol      = ArgumentLogging::NA_value,
-                  double                      rtol      = ArgumentLogging::NA_value)
+                  double                      rtol      = ArgumentLogging::NA_value,
+                  bool                        tuning_result = false)
     {
         hipblaslt_internal_ostream name_list;
         hipblaslt_internal_ostream value_list;
@@ -252,23 +256,33 @@ public:
                      atol,
                      rtol);
 
-        auto delim = ",";
-        name_list << delim << "soulution_index";
-        value_list << delim << solution_index;
 
+        if (tuning_result && arg.algo_method == 1)
+        {
+            
+            auto delim = ",";
+            name_list << delim << "soulution_index";
+            value_list << delim << solution_index;
 
+            const char* tuningEnv = getenv("HIPBLASLT_MATMUL_TUNING_PATH");
+            if (tuningEnv)
+            {
+                std::string tuningPath = tuningEnv;
+                std::ofstream file(tuningPath, std::ios::app);
+                file << value_list << std::endl;
+            }
+
+        }
+
+        str << name_list << "\n" 
+            << value_list << std::endl;
+        
         if(solution_name != "")
         {
-            str << name_list << "\n"
-                << value_list << "\n"
-                << "    --Solution index: " << solution_index << "\n"
+            str << "    --Solution index: " << solution_index << "\n"
                 << "    --Solution name:  " << solution_name << "\n"
                 << "    --kernel name:    " << kernel_name << std::endl;
         }
-        else
-        {
-            str << name_list << "\n" 
-                << value_list << std::endl;
-        }
+
     }
 };

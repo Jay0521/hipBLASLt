@@ -3217,7 +3217,6 @@ void testing_matmul_with_bias(const Arguments& arg,
             std::string kernelName    = "";
             if(arg.print_solution_found)
             {
-                solutionIndex = hipblaslt_ext::getIndexFromAlgo(heuristicResult[sol].algo);
                 if(arg.print_kernel_info)
                 {
                     if(arg.use_ext)
@@ -3240,6 +3239,7 @@ void testing_matmul_with_bias(const Arguments& arg,
                         kernelName = hipblaslt_ext::getKernelNameFromAlgo(
                             handle, heuristicResult[sol].algo);
                     }
+                    solutionIndex = hipblaslt_ext::getIndexFromAlgo(heuristicResult[sol].algo);
                 }
                 ArgumentModel<argument_param>{}.log_args(
                     Talpha,
@@ -3258,7 +3258,8 @@ void testing_matmul_with_bias(const Arguments& arg,
                     cpu_time_used,
                     hipblaslt_error,
                     hipblaslt_atol,
-                    hipblaslt_rtol);
+                    hipblaslt_rtol,
+                    false);
             }
             if(best_gpu_time > gpu_time_used)
             {
@@ -3302,7 +3303,8 @@ void testing_matmul_with_bias(const Arguments& arg,
                 cpu_time_used,
                 best_norm,
                 best_atol,
-                best_rtol);
+                best_rtol,
+                true);
         }
     }
 
