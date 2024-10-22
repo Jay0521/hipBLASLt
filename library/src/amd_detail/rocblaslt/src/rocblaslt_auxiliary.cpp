@@ -115,14 +115,6 @@ bool problem_override_from_file(rocblaslt_handle&                      handle,
     }
     else 
     {
-        // for (const auto& m : probSols)
-        // {
-        //     std::cout << m.first.m() << " ";
-        //     std::cout << m.first.n() << " ";
-        //     std::cout << m.first.k() << " ";
-        //     std::cout << m.first.batchSize() << "\n";
-        // }
-
 
         std::vector<rocblaslt_matmul_heuristic_result> overrideResults;
         std::vector<int> solutionIndex(1);
@@ -135,7 +127,6 @@ bool problem_override_from_file(rocblaslt_handle&                      handle,
             !success && sol_idx != sol_iter.second; 
             sol_idx++)
         {
-            std::cout << sol_idx->second << std::endl;
             solutionIndex[0] = sol_idx->second;
 
             if (rocblaslt_status_success

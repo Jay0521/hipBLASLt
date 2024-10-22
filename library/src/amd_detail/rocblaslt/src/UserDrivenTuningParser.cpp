@@ -50,45 +50,47 @@ namespace Tensile
             std::ifstream file(path);
             std::string   line, entry;
 
+            const auto verion        = "Git Version";
             const auto delim         = ',';
             const int  max_entries   = 34;
 
             while(std::getline(file, line))
             {
                 // Ignore lines without delimiter
-                if(line.find(delim) == std::string::npos)
-                {
-                    continue;
-                }
+                line.erase(0, line.find_first_not_of(" \t\n\r\f\v"));
 
-                std::vector<std::string> entries{};
-                entries.reserve(max_entries);
-
-                std::stringstream line_ss(line);
-                while(getline(line_ss, entry, delim))
+                if(line.find(delim) != std::string::npos && line.find(verion) == std::string::npos)
                 {
-                    entries.push_back(entry);
-                }
+                    std::vector<std::string> entries{};
+                    entries.reserve(max_entries);
 
-                auto problemSolution = problemFromEntries(entries);
-                if(problemSolution.second > 0)
-                {
-                    //std::cout << problemSolution.second << std::endl;
-                    bool duplicated_entry = false;
-                    auto sol_iter = m_override.equal_range(problemSolution.first);
-                    for (auto sol_idx = sol_iter.first; 
-                        !duplicated_entry && sol_idx != sol_iter.second; 
-                        sol_idx++)
+                    std::stringstream line_ss(line);
+                    while(getline(line_ss, entry, delim))
                     {
-                        if (sol_idx->second == problemSolution.second)
-                        {
-                            duplicated_entry = true;
-                        }
+                        entries.push_back(entry);
                     }
 
-                    if (!duplicated_entry)
+                    auto problemSolution = problemFromEntries(entries);
+                    
+                    if(problemSolution.second > 0)
                     {
-                        m_override.insert(problemSolution);
+                        //std::cout << problemSolution.second << std::endl;
+                        bool duplicated_entry = false;
+                        auto sol_iter = m_override.equal_range(problemSolution.first);
+                        for (auto sol_idx = sol_iter.first; 
+                            !duplicated_entry && sol_idx != sol_iter.second; 
+                            sol_idx++)
+                        {
+                            if (sol_idx->second == problemSolution.second)
+                            {
+                                duplicated_entry = true;
+                            }
+                        }
+
+                        if (!duplicated_entry)
+                        {
+                            m_override.insert(problemSolution);
+                        }
                     }
                 }
             }
@@ -110,7 +112,6 @@ namespace Tensile
         }
 
         //Expected format: transA,transB,batch_count,M,N,K,input_type,output_type,compute_type,solution_index
-
         bool transA = (entries[0] != "N");
         bool transB = (entries[1] != "N");
 

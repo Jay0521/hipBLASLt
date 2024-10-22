@@ -257,7 +257,7 @@ public:
                      rtol);
 
 
-        if (tuning_result && arg.algo_method == 1)
+        if (tuning_result)
         {
             
             auto delim = ",";
