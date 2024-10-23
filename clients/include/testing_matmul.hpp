@@ -3212,10 +3212,12 @@ void testing_matmul_with_bias(const Arguments& arg,
         e_c_type, e_d_type, e_compute_type, e_scaleA, e_scaleB, e_scaleC, e_scaleD, e_amaxD,      \
         e_activation_type, e_bias_vector, e_bias_type, e_rotating
 
-            int32_t     solutionIndex = -1;
+            int32_t     solutionIndex = (heuristicResult.size() == 1)
+                                        ? hipblaslt_ext::getIndexFromAlgo(heuristicResult[best_sol].algo) 
+                                        : -1;
             std::string solutionName  = "";
             std::string kernelName    = "";
-            bool tuning_result = (arg.algo_method == 1 && heuristicResult.size() == 1);
+            bool tuning_result = (heuristicResult.size() == 1);
             if(arg.print_solution_found)
             {
                 if(arg.print_kernel_info)
@@ -3280,7 +3282,7 @@ void testing_matmul_with_bias(const Arguments& arg,
             int32_t     solutionIndex = hipblaslt_ext::getIndexFromAlgo(heuristicResult[best_sol].algo);
             std::string solutionName  = "";
             std::string kernelName    = "";
-            bool tuning_result = (arg.algo_method == 1);
+            bool tuning_result = true;
             if(arg.print_kernel_info)
             {
                 solutionName  = best_s_name;

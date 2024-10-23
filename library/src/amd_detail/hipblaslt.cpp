@@ -34,11 +34,44 @@
 #include <rocblaslt.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 
 #include "Debug.hpp"
 
 #define TO_STR2(x) #x
 #define TO_STR(x) TO_STR2(x)
+
+bool override_path_compare_git_version(const char* overrideEnv, hipblasLtHandle_t   handle)
+{
+    int                     version;
+    char                    git_version[128]; 
+    hipblasLtGetGitRevision(handle, &git_version[0]);
+    std::string overridePath = overrideEnv;
+    std::ifstream file_read(overridePath);
+    std::string firstline;
+    std::string header = "Git Version: ";
+    std::getline(file_read, firstline);
+    size_t pos = firstline.find(header);
+    if (pos != std::string::npos)
+    {
+        std::string file_version = firstline.substr(pos + header.length());
+        if (file_version != git_version)
+            overridePath = "";
+        else
+            return true;
+    }
+    else
+    {
+        overridePath = "";
+    }
+
+    std::cerr << "The hipBLASLt git version and the override file git version are not the same." << git_version << std::endl;
+
+    setenv("HIPBLASLT_TUNING_OVERRIDE_FILE", overridePath.c_str(), 1);
+
+    return false;
+
+}
 
 hipblasStatus_t hipErrorToHIPBLASStatus(hipError_t status)
 {
@@ -410,6 +443,15 @@ hipblasStatus_t
 try
 {
     rocblaslt::Debug::Instance().markerStart("hipblasLtMatmulAlgoGetHeuristic");
+
+    const char* overrideEnv = getenv("HIPBLASLT_TUNING_OVERRIDE_FILE");
+    if (overrideEnv)
+    {
+        bool override_success = override_path_compare_git_version(overrideEnv, handle); 
+        if (override_success)
+            std::cerr << "HIPBLASLT_TUNING_OVERRIDE_FILE is the correct setting." << std::endl;
+    }
+
     auto status = RocBlasLtStatusToHIPStatus(rocblaslt_matmul_algo_get_heuristic(
         (rocblaslt_handle)handle,
         (rocblaslt_matmul_desc)matmulDesc,

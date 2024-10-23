@@ -39,11 +39,11 @@ Tensile::DataType roc2TensileType(rocblaslt_compute_type type)
 namespace Tensile
 {
 
-    std::unordered_multimap<ProblemOverride, int>
+    std::multimap<ProblemOverride, int>
         getContractionProblemsFromFile(const std::string& path)
     {
         
-        static std::unordered_multimap<ProblemOverride, int> m_override;
+        static std::multimap<ProblemOverride, int> m_override;
         
         if (m_override.size() == 0){
             
@@ -74,7 +74,6 @@ namespace Tensile
                     
                     if(problemSolution.second > 0)
                     {
-                        //std::cout << problemSolution.second << std::endl;
                         bool duplicated_entry = false;
                         auto sol_iter = m_override.equal_range(problemSolution.first);
                         for (auto sol_idx = sol_iter.first; 

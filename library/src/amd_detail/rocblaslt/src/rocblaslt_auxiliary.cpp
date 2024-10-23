@@ -81,17 +81,36 @@ inline void heuristicResult_copy(rocblaslt_matmul_heuristic_result*       heuris
 
 inline bool heuristicResult_check_duplicated(rocblaslt_matmul_heuristic_result*     heuristicResultsArray,
                                                 rocblaslt_matmul_heuristic_result*  SolutionsResult,
-                                                int&                                AlgoCount)
+                                                int&                                AlgoCount,
+                                                bool                                override_option)
 {
-    bool duplicated_sol = false;
+
+    int index = -1;
+
     for(int i = 0; i < AlgoCount; i++)
     {
         if(*(int*)(heuristicResultsArray[i].algo.data)
         == *(int*)(SolutionsResult->algo.data)) //solution index
-            duplicated_sol = true;
+            index = i;
     }
 
-    return duplicated_sol;
+    if (override_option)
+    {
+        if (index == -1)
+            index = AlgoCount - 1;
+
+        for(int i = 0;
+            i < index;
+            i++)
+        {
+            heuristicResultsArray[index - i] = heuristicResultsArray[index - i - 1];
+        }
+
+        
+        index = -1;
+    }
+
+    return (index == -1) ? false : true;
 }
 
 
@@ -115,20 +134,18 @@ bool problem_override_from_file(rocblaslt_handle&                      handle,
     }
     else 
     {
-
         std::vector<rocblaslt_matmul_heuristic_result> overrideResults;
         std::vector<int> solutionIndex(1);
         Tensile::ProblemOverride prob_key(problem);
         auto sol_iter = probSols.equal_range(prob_key);
 
         //TODO: Is it necessary to support the approximation mapped method?
-
-        for (auto sol_idx = sol_iter.first; 
-            !success && sol_idx != sol_iter.second; 
+        for (auto sol_idx = std::make_reverse_iterator(sol_iter.second);
+            !success && sol_idx != std::make_reverse_iterator(sol_iter.first); 
             sol_idx++)
         {
             solutionIndex[0] = sol_idx->second;
-
+            
             if (rocblaslt_status_success
             == getSolutionsFromIndex(handle, solutionIndex, overrideResults, pref->max_workspace_bytes))
             {
@@ -139,14 +156,18 @@ bool problem_override_from_file(rocblaslt_handle&                      handle,
                 if (rocblaslt_status_success
                     == isSolutionSupported(handle, problem, tensile_data, &overrideResults[0].algo, &required_workspace_size))
                 {
+                    
                     if (!heuristicResult_check_duplicated(heuristicResultsArray,
-                                                            &overrideResults[0],
-                                                            (*returnAlgoCount)))
+                        &overrideResults[0],
+                        (*returnAlgoCount),
+                        true))
                     {
-                        heuristicResult_copy(&heuristicResultsArray[(*returnAlgoCount) - 1], 
+                        heuristicResult_copy(&heuristicResultsArray[0], 
                                                 &overrideResults[0],
                                                 pref->max_workspace_bytes,
                                                 required_workspace_size);
+
+                        std::cerr << *((int*)(heuristicResultsArray[0].algo.data)) << std::endl;
                     }
 
                     success = true;
@@ -159,7 +180,6 @@ bool problem_override_from_file(rocblaslt_handle&                      handle,
             std::cerr << "\nrocblaslt warning: failed to find solution with index: "
                         << solutionIndex[0] << std::endl; 
         }
-
     }
 
     return success;
@@ -1445,7 +1465,7 @@ rocblaslt_status
         int8_t                 alpha[16]    = {0};
         int8_t                 beta[16]     = {0};
         assignAlphaBeta1(compute_type, (void*)alpha, (void*)beta);
-        const char* overrideEnv = getenv("HIPBALSLT_MATMUL_OVERRIDE_PATH");
+        const char* overrideEnv = getenv("HIPBLASLT_TUNING_OVERRIDE_FILE");
         bool override_success = false;
 
         //bias ptr can be set later after getting solution.
@@ -1509,7 +1529,8 @@ rocblaslt_status
 
                     if(heuristicResult_check_duplicated(heuristicResultsArray,
                                                         &allSolutionsResults[i],
-                                                        oriReturnAlgoCount)
+                                                        oriReturnAlgoCount,
+                                                        false)
                     || rocblaslt_status_success
                             != isSolutionSupported(handle,
                                                     prob,

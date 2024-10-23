@@ -264,7 +264,7 @@ public:
             name_list << delim << "soulution_index";
             value_list << delim << solution_index;
 
-            const char* tuningEnv = getenv("HIPBLASLT_MATMUL_TUNING_PATH");
+            const char* tuningEnv = getenv("HIPBLASLT_TUNING_FILE");
             if (tuningEnv)
             {
                 std::string tuningPath = tuningEnv;

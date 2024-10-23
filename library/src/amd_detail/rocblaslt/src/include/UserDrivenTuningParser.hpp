@@ -82,7 +82,7 @@ namespace Tensile
     std::pair<ProblemOverride, int>
        problemFromEntries(const std::vector<std::string>& entries);
 
-    std::unordered_multimap<ProblemOverride, int>
+    std::multimap<ProblemOverride, int>
        getContractionProblemsFromFile(const std::string& path);
 
     template <>
